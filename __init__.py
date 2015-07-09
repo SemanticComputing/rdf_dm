@@ -1,2 +1,6 @@
-from association_analysis import *
+"""
+rdf tools package
+"""
 
+from rdftools.helpers import *
+from rdftools.association import *

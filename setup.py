@@ -10,7 +10,7 @@ def read(fname):
 
 
 setup(
-    name="rdf-tools",
+    name="rdftools",
     version="0.0.1",
     author="Mikko Koho",
     author_email="mikko.koho@iki.fi",
@@ -19,4 +19,7 @@ setup(
     keywords="rdf",
     url="",
     long_description=read('README'),
+    install_requires=[
+        'python-slugify >= 1.1.3',
+    ],
 )
