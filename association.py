@@ -46,38 +46,36 @@ def frequent_items(graph):
         print(return_code)
 
 
-def freq_items_by_class(graph, clas):
+def freq_items_by_class(graph, cl, minsup1=50, minsup2=25, minconf=90):
     """
 
     :type graph: rdflib.Graph
-    :param clas:
+    :param cl: class resource
     """
 
     po_items = []  # list of lists
 
-    for cl in sorted(set(h.classes(graph))):
-        if cl == clas:
-            instances = graph.subjects(RDF.type, cl)
-            for i in instances:
-                po_items.append(["{p}-->{o}".format(p=str(p), o=str(o)) for (p, o) in graph.predicate_objects(i)])
+    instances = h.get_class_instances(graph, cl)
+    for i in instances:
+        po_items.append(["{p}-->{o}".format(p=str(p), o=str(o)) for (p, o) in graph.predicate_objects(i)])
 
     # return po_items
 
-    basket_file = '{pwd}/itemsets/rdf.{slug}.basket'.format(pwd=_pwd, slug=slugify(clas))
+    basket_file = '{pwd}/itemsets/rdf.{slug}.basket'.format(pwd=_pwd, slug=slugify(cl))
 
     with open(basket_file, encoding='UTF-8', mode='w+') as f:
         for po in po_items:
             f.write(','.join(po) + "\n")
 
-    return_code = subprocess.call("fpgrowth -ts -f\",\" -s50 {file} {file}.freq_itemsets".
-                                  format(file=basket_file), shell=True)
+    return_code = subprocess.call("fpgrowth -ts -f\",\" -s{sup} {file} {file}.freq_itemsets".
+                                  format(sup=minsup1, file=basket_file), shell=True)
 
     if return_code:
         print(return_code)
         raise Exception('FP-growth from FIM package not found.')
 
-    return_code = subprocess.call("fpgrowth -tr -f\",\" -s25 -c95 -el -d200 {file} {file}.freq_rules".
-                                  format(file=basket_file), shell=True)
+    return_code = subprocess.call("fpgrowth -tr -f\",\" -s{sup} -c{conf} -el -d200 {file} {file}.freq_rules".
+                                  format(sup=minsup2, conf=minconf, file=basket_file), shell=True)
 
     # TODO: Get lift to output
 

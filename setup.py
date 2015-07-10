@@ -21,5 +21,7 @@ setup(
     long_description=read('README'),
     install_requires=[
         'python-slugify >= 1.1.3',
+        'rdflib >= 4.2.0',
+        'SPARQLWrapper >= 1.6.4',
     ],
 )
