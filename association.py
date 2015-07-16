@@ -7,6 +7,9 @@ from slugify import slugify
 
 _pwd = os.path.dirname(os.path.realpath(__file__))
 
+_itemset_separator = '|'
+_predicate_object_separator = '-->'
+
 
 import rdftools.helpers as h
 
@@ -46,8 +49,9 @@ def frequent_items(graph):
         print(return_code)
 
 
-def freq_items_by_class(graph, cl, minsup1=50, minsup2=25, minconf=90):
+def freq_items_by_class(graph, cl, minsup1=50, minsup2=25, minconf=90, minlift=200):
     """
+    Get frequent items by class. Uses FIM package's implementation of fpgrowth algorithm.
 
     :type graph: rdflib.Graph
     :param cl: class resource
@@ -57,7 +61,8 @@ def freq_items_by_class(graph, cl, minsup1=50, minsup2=25, minconf=90):
 
     instances = h.get_class_instances(graph, cl)
     for i in instances:
-        po_items.append(["{p}-->{o}".format(p=str(p), o=str(o)) for (p, o) in graph.predicate_objects(i)])
+        po_items.append(["{p}{sep}{o}".format(p=str(p), o=str(o), sep=_predicate_object_separator)
+                        for (p, o) in graph.predicate_objects(i)])
 
     # return po_items
 
@@ -65,19 +70,38 @@ def freq_items_by_class(graph, cl, minsup1=50, minsup2=25, minconf=90):
 
     with open(basket_file, encoding='UTF-8', mode='w+') as f:
         for po in po_items:
-            f.write(','.join(po) + "\n")
+            if any(_itemset_separator in item for item in po):
+                raise Exception('Separator symbol | found in items')
+            f.write(_itemset_separator.join(po) + "\n")
 
-    return_code = subprocess.call("fpgrowth -ts -f\",\" -s{sup} {file} {file}.freq_itemsets".
+    return_code = subprocess.call("fpgrowth -ts -f\"|\" -s{sup} -v\" %s\" {file} {file}.freq_itemsets".
                                   format(sup=minsup1, file=basket_file), shell=True)
 
     if return_code:
         print(return_code)
-        raise Exception('FP-growth from FIM package not found.')
+        raise Exception('Error while running fpgrowth.')
 
-    return_code = subprocess.call("fpgrowth -tr -f\",\" -s{sup} -c{conf} -el -d200 {file} {file}.freq_rules".
-                                  format(sup=minsup2, conf=minconf, file=basket_file), shell=True)
-
-    # TODO: Get lift to output
+    return_code = subprocess.call("fpgrowth -tr -f\"|\" -m2 -v\" %s,%c,%e\" -s{sup} -c{conf} -el -d{lift} {file} {file}.freq_rules".
+                                  format(sup=minsup2, conf=minconf, lift=minlift, file=basket_file), shell=True)
 
     if return_code:
         print(return_code)
+
+    with open("{file}.freq_itemsets".format(file=basket_file), encoding='UTF-8', mode='r') as f:
+        freq_itemsets = []
+        for row in f.readlines():
+            pred_objs = [po.split(sep=_predicate_object_separator) for po in row.split()[:-1]]
+            support = float(row.split()[-1])
+            freq_itemsets += [(pred_objs, support)]
+
+    with open("{file}.freq_rules".format(file=basket_file), encoding='UTF-8', mode='r') as f:
+        freq_rules = []
+        for row in f.readlines():
+            row_parts = row.split()
+            supp, conf, lift = (float(part) for part in row_parts[-1].split(','))
+            ante, cons = (part.split(_predicate_object_separator) for part in ' '.join(row_parts[:-1]).split(' <- '))
+            print('Ante: %s, \t Cons: %s' % (ante, cons))
+            freq_rules += [(ante, cons, supp, conf, lift)]
+
+
+    return freq_itemsets, freq_rules
