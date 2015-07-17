@@ -99,9 +99,16 @@ def freq_items_by_class(graph, cl, minsup1=50, minsup2=25, minconf=90, minlift=2
         for row in f.readlines():
             row_parts = row.split()
             supp, conf, lift = (float(part) for part in row_parts[-1].split(','))
-            ante, cons = (part.split(_predicate_object_separator) for part in ' '.join(row_parts[:-1]).split(' <- '))
+            antecedents_string, consequents_string = ' '.join(row_parts[:-1]).split(' <- ')
+            ante = [po.split(_predicate_object_separator) for po in antecedents_string.split()]
+            cons = [po.split(_predicate_object_separator) for po in consequents_string.split()]
             print('Ante: %s, \t Cons: %s' % (ante, cons))
-            freq_rules += [(ante, cons, supp, conf, lift)]
-
+            # freq_rules += [(ante, cons, supp, conf, lift)]
+            freq_rules += [{'antecedents': ante,
+                            'consequents': cons,
+                            'support': supp,
+                            'confidence': conf,
+                            'lift': lift,
+                            }]
 
     return freq_itemsets, freq_rules
