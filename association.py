@@ -1,7 +1,6 @@
-from collections import defaultdict
 import os
 import re
-from rdflib import Graph, RDF, namespace
+from rdflib import Graph, namespace
 import subprocess
 
 from slugify import slugify
@@ -20,11 +19,6 @@ _namespace_prefixes.update({'http://ldf.fi/schema/narc-menehtyneet1939-45/': 'ss
 
 import rdftools.helpers as h
 
-# def create_itemsets(graph):
-    # g = Graph()
-    # g.parse('/home/mikko/HALIAS/JavaOutput/halias_taxon_ontology.ttl', format="turtle")
-
-    # triple_items = ["{s} - {p} - {o}".format(s=str(s), p=str(p), o=str(o)) for (s, p, o) in g]
 
 def freq_items_by_class(graph, cl, ns_prefixes=_namespace_prefixes, minsup1=50, minsup2=25, minconf=90, minlift=200):
     """
@@ -49,16 +43,16 @@ def freq_items_by_class(graph, cl, ns_prefixes=_namespace_prefixes, minsup1=50, 
             pos.append("{p}{sep}{o}".format(p=str(p), o=str(o), sep=_predicate_object_separator))
         po_items.append(pos)
 
-    # return po_items
-
     basket_file = '{pwd}/itemsets/rdf.{slug}.basket'.format(pwd=_pwd, slug=slugify(cl))
 
+    # Write itemsets file
     with open(basket_file, encoding='UTF-8', mode='w+') as f:
         for po in po_items:
             if any(_itemset_separator in item for item in po):
                 raise Exception('Separator symbol | found in items')
             f.write(_itemset_separator.join(po) + "\n")
 
+    # Generate frequent itemsets
     return_code = subprocess.call("fpgrowth -ts -f\"|\" -s{sup} -v\" %s\" {file} {file}.freq_itemsets".
                                   format(sup=minsup1, file=basket_file), shell=True)
 
@@ -66,6 +60,7 @@ def freq_items_by_class(graph, cl, ns_prefixes=_namespace_prefixes, minsup1=50, 
         print(return_code)
         raise Exception('Error while running fpgrowth.')
 
+    # Generate frequent association rules
     return_code = subprocess.call("fpgrowth -tr -f\"|\" -m2 -v\" %s,%c,%e\" -s{sup} -c{conf} -el -d{lift} {file} {file}.freq_rules".
                                   format(sup=minsup2, conf=minconf, lift=minlift, file=basket_file), shell=True)
 
