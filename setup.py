@@ -10,11 +10,11 @@ def read(fname):
 
 
 setup(
-    name="rdftools",
-    version="0.0.1",
+    name="rdf_dm",
+    version="0.1.0",
     author="Mikko Koho",
     author_email="mikko.koho@iki.fi",
-    description="Tools for usage and analysis of RDF datasets",
+    description="Tools for data mining tasks with RDF datasets",
     license="MIT",
     keywords="rdf",
     url="",

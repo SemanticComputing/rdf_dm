@@ -17,7 +17,7 @@ _namespace_prefixes.update({'http://ldf.fi/schema/narc-menehtyneet1939-45/': 'ss
                             'http://xmlns.com/foaf/0.1/': 'foaf:',
                    })
 
-import rdftools.helpers as h
+import helpers as h
 
 
 def freq_items_by_class(graph, cl, ns_prefixes=_namespace_prefixes, minsup1=50, minsup2=25, minconf=90, minlift=200):
