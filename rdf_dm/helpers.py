@@ -1,4 +1,5 @@
-"""Helper functions for rdftools"""
+"""Helper functions for rdf_dm"""
+
 from itertools import chain
 from urllib.parse import urlparse
 
@@ -19,7 +20,7 @@ def read_graph_from_sparql(endpoint="http://dbpedia.org/sparql"):
     :param endpoint:
     :return: A brand new graph
     """
-    from SPARQLWrapper import SPARQLWrapper, JSON, TURTLE
+    from SPARQLWrapper import SPARQLWrapper, JSON
 
     sparql = SPARQLWrapper(endpoint)
     sparql.setQuery('SELECT * WHERE { ?s ?p ?o  }')

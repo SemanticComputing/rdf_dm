@@ -1,8 +1,10 @@
+"""Association analysis functions for rdf_dm"""
+
 import os
 import re
-from rdflib import Graph, namespace
 import subprocess
 
+from rdflib import Graph, namespace
 from slugify import slugify
 
 _pwd = os.path.dirname(os.path.realpath(__file__))
@@ -10,14 +12,15 @@ _pwd = os.path.dirname(os.path.realpath(__file__))
 _itemset_separator = '|'
 _predicate_object_separator = '-->'
 
-_namespace_prefixes = dict(((str(uri), prefix + ':') for prefix, uri in namespace.NamespaceManager(Graph()).namespaces()))
-    # list(namespace.NamespaceManager(Graph()).namespaces()) + \
+_namespace_prefixes = dict(((str(uri), prefix + ':') for prefix, uri in
+                            namespace.NamespaceManager(Graph()).namespaces()))
+
 _namespace_prefixes.update({'http://ldf.fi/schema/narc-menehtyneet1939-45/': 'sss:',
                             'http://ldf.fi/narc-menehtyneet1939-45/': 'ss:',
                             'http://xmlns.com/foaf/0.1/': 'foaf:',
-                   })
+                            })
 
-import helpers as h
+from rdf_dm import helpers
 
 
 def freq_items_by_class(graph, cl, ns_prefixes=_namespace_prefixes, minsup1=50, minsup2=25, minconf=90, minlift=200):
@@ -33,7 +36,7 @@ def freq_items_by_class(graph, cl, ns_prefixes=_namespace_prefixes, minsup1=50, 
     if ns_prefixes:
         pattern = re.compile(r'\b(' + '|'.join(ns_prefixes.keys()) + r')\b')
 
-    instances = h.get_class_instances(graph, cl)
+    instances = helpers.get_class_instances(graph, cl)
     for i in instances:
         pos = []
         for (p, o) in graph.predicate_objects(i):
@@ -61,8 +64,9 @@ def freq_items_by_class(graph, cl, ns_prefixes=_namespace_prefixes, minsup1=50, 
         raise Exception('Error while running fpgrowth.')
 
     # Generate frequent association rules
-    return_code = subprocess.call("fpgrowth -tr -f\"|\" -m2 -v\" %s,%c,%e\" -s{sup} -c{conf} -el -d{lift} {file} {file}.freq_rules".
-                                  format(sup=minsup2, conf=minconf, lift=minlift, file=basket_file), shell=True)
+    return_code = subprocess.\
+        call("fpgrowth -tr -f\"|\" -m2 -v\" %s,%c,%e\" -s{sup} -c{conf} -el -d{lift} {file} {file}.freq_rules".
+             format(sup=minsup2, conf=minconf, lift=minlift, file=basket_file), shell=True)
 
     if return_code:
         print(return_code)

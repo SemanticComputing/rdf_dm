@@ -1,7 +1,7 @@
 rdf_dm
 ------
 
-Collection of Python tools and helpers for data mining tasks and statistical analysis of RDF datasets.
+Collection of Python tools for data mining tasks and statistical analysis of RDF datasets.
 
 Currently requires Christian Borgelt's FP-growth program (http://www.borgelt.net/fpgrowth.html) for association analysis.
 
