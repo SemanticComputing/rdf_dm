@@ -25,10 +25,18 @@ from . import helpers
 
 def freq_items_by_class(graph, cl, ns_prefixes=_namespace_prefixes, minsup1=50, minsup2=25, minconf=90, minlift=200):
     """
-    Get frequent items by class. Uses FIM package's implementation of fpgrowth algorithm.
+    Get frequent items and rules by class. Uses FIM package's implementation of fpgrowth algorithm.
 
-    :type graph: rdflib.Graph
+    Currently stores generated information also to files in 'itemsets' directory, which should exist when run.
+
+    :param ns_prefixes: Namespace prefixes to use for shortening URIs
+    :param minsup1: Minimum support for frequent itemsets
+    :param minsup2: Minimum support for frequent rules
+    :param minconf: Minimum confidence for frequent rules
+    :param minlift: Minimum lift for frequent rules
+    :param graph: An RDF graph
     :param cl: class resource
+    :type graph: rdflib.Graph
     """
 
     po_items = []  # list of lists

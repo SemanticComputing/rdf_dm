@@ -8,17 +8,17 @@ from rdflib import Graph, RDF, URIRef, Literal, RDFS
 
 def is_uri(uri):
     """
-    Return True if uri seems like a valid URI.
+    Return True if given string seems like a valid URI.
     """
     return bool(urlparse(uri).scheme)
 
 
 def read_graph_from_sparql(endpoint="http://dbpedia.org/sparql"):
     """
-    Read all triples from SPARQL endpoint to an rdflib Graph.
+    Read all triples from a SPARQL endpoint to an rdflib Graph.
 
-    :param endpoint:
-    :return: A brand new graph
+    :param endpoint: A SPARQL endpoing
+    :return: A new rdflib graph
     """
     from SPARQLWrapper import SPARQLWrapper, JSON
 
@@ -48,8 +48,8 @@ def get_classes(graph):
     """
     Get all distinct classes that have instances.
 
-    :param graph:
-    :return:
+    :param graph: An RDF graph
+    :type graph: rdflib.Graph
     """
     return sorted(set(graph.objects(None, RDF.type)))
 
@@ -60,12 +60,12 @@ def get_subclasses(graph, cl):
 
 def get_class_instances(graph, cl, use_subclasses=True):
     """
-    Get class instances
+    Get all instances of a class
 
-    :param graph:
-    :param clas:
-    :param use_subclasses:
-    :return:
+    :param graph: An RDF graph
+    :param cl: The class to get instances of
+    :param use_subclasses: Also get instances of subclasses
+    :type graph: rdflib.Graph
     """
     if use_subclasses:
         subclasses = list(get_subclasses(graph, cl))
@@ -78,8 +78,11 @@ def get_class_instances(graph, cl, use_subclasses=True):
 
 def classes_instances(graph, verbose=True, use_subclasses=True):
     """
-    Print number of instances per class.
+    Get the number of instances per class, and print them if verbose=True.
 
+    :param graph: An RDF graph
+    :param verbose: print results
+    :param use_subclasses: Also get instances of subclasses
     :type graph: rdflib.Graph
     """
 
