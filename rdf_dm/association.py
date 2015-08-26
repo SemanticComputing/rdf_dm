@@ -1,10 +1,12 @@
 """Association analysis functions for rdf_dm"""
 
+from . import helpers
+
 import os
 import re
 import subprocess
 
-from rdflib import Graph, namespace
+from rdflib import Graph, namespace, URIRef, RDF
 from slugify import slugify
 
 _pwd = os.path.dirname(os.path.realpath(__file__))
@@ -15,12 +17,10 @@ _predicate_object_separator = '-->'
 _namespace_prefixes = dict(((str(uri), prefix + ':') for prefix, uri in
                             namespace.NamespaceManager(Graph()).namespaces()))
 
-_namespace_prefixes.update({'http://ldf.fi/schema/narc-menehtyneet1939-45/': 'sss:',
-                            'http://ldf.fi/narc-menehtyneet1939-45/': 'ss:',
+_namespace_prefixes.update({'http://ldf.fi/schema/narc-menehtyneet1939-45/': 'narcs:',
+                            'http://ldf.fi/narc-menehtyneet1939-45/': 'narc:',
                             'http://xmlns.com/foaf/0.1/': 'foaf:',
                             })
-
-from . import helpers
 
 
 def freq_items_by_class(graph, cl, ns_prefixes=_namespace_prefixes, minsup1=50, minsup2=25, minconf=90, minlift=200):
@@ -39,7 +39,7 @@ def freq_items_by_class(graph, cl, ns_prefixes=_namespace_prefixes, minsup1=50, 
     :type graph: rdflib.Graph
     """
 
-    po_items = []  # list of lists
+    po_items = []  # Predicate + object pairs (list of lists)
 
     if ns_prefixes:
         pattern = re.compile(r'\b(' + '|'.join(ns_prefixes.keys()) + r')\b')
@@ -48,6 +48,8 @@ def freq_items_by_class(graph, cl, ns_prefixes=_namespace_prefixes, minsup1=50, 
     for i in instances:
         pos = []
         for (p, o) in graph.predicate_objects(i):
+            if (p, o) == (URIRef(RDF.type), URIRef(cl)):
+                continue
             if ns_prefixes:
                 p = pattern.sub(lambda x: ns_prefixes[x.group()], p)
                 o = pattern.sub(lambda x: ns_prefixes[x.group()], o)
