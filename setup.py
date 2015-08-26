@@ -7,7 +7,7 @@ def read(fname):
 
 setup(
     name="rdf_dm",
-    version="0.1.0",
+    version="0.1.1",
     author="Mikko Koho",
     author_email="mikko.koho@iki.fi",
     description="Tools for data mining RDF datasets",
@@ -15,6 +15,7 @@ setup(
     keywords="rdf",
     url="",
     long_description=read('README'),
+    packages=['rdf_dm'],
     install_requires=[
         'python-slugify >= 1.1.3',
         'rdflib >= 4.2.0',
