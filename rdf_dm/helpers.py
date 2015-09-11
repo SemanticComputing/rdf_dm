@@ -13,13 +13,16 @@ def is_uri(uri):
     return bool(urlparse(uri).scheme)
 
 
-def read_graph_from_sparql(endpoint="http://dbpedia.org/sparql"):
+def read_graph_from_sparql(endpoint):
     """
     Read all triples from a SPARQL endpoint to an rdflib Graph.
 
     :param endpoint: A SPARQL endpoing
     :return: A new rdflib graph
+    >>> read_graph_from_sparql("http://dbpedia.org/sparql")
     """
+    # TODO: allow to specify graph name also
+
     from SPARQLWrapper import SPARQLWrapper, JSON
 
     sparql = SPARQLWrapper(endpoint)
@@ -101,3 +104,21 @@ def classes_instances(graph, verbose=True, use_subclasses=True):
         class_data[cl] = (instances, subclasses)
 
     return class_data
+
+def get_unknown_links(graph, precise=False):
+    """
+    Get URI references in graphs that are not in classes or class instances (or all subjects with precise=True).
+
+    :param graphs: An RDF graph or list of graphs
+    :param precise: Get all subjects, not only classes and their instances
+    :return: List of URI references
+    """
+    if precise:
+        known_uris = list(set(s for s in graph.subjects()))
+    else:
+        known_uris = list(set(get_classes(graph)) | set(list(get_class_instances(graph, None))))
+
+    links = set(o for o in graph.objects() if type(o) != Literal)
+
+    return list(set([o for o in links if o not in known_uris]))
+
