@@ -122,3 +122,14 @@ def get_unknown_links(graph, precise=False):
 
     return list(set([o for o in links if o not in known_uris]))
 
+def get_unlinked_uris(graph):
+    """
+    Get subject nodes that are not used as objects in graph
+
+    :param graph:
+    :return:
+    """
+
+    links = set(o for o in graph.objects() if type(o) != Literal)
+
+    return set(list(s for s in graph.subjects() if s not in links))
