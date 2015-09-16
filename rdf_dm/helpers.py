@@ -134,6 +134,8 @@ def get_unlinked_uris(graph):
     """
 
     links = set(o for o in graph.objects() if type(o) != Literal)
+    preds = set(p for p in graph.predicates())
 
-    return list(set(s for s in graph.subjects() if s not in links) &
-                set(p for p in graph.predicates() if p not in links))
+    used_uris = links | preds
+
+    return list(set(s for s in graph.subjects() if s not in used_uris))
