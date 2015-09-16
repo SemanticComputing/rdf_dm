@@ -13,7 +13,7 @@ def is_uri(uri):
     return bool(urlparse(uri).scheme)
 
 
-def read_graph_from_sparql(endpoint):
+def read_graph_from_sparql(endpoint, graph_name=None):
     """
     Read all triples from a SPARQL endpoint to an rdflib Graph.
 
@@ -26,7 +26,10 @@ def read_graph_from_sparql(endpoint):
     from SPARQLWrapper import SPARQLWrapper, JSON
 
     sparql = SPARQLWrapper(endpoint)
-    sparql.setQuery('SELECT * WHERE { ?s ?p ?o  }')
+    if graph_name:
+        sparql.setQuery('SELECT * FROM <%s> WHERE { ?s ?p ?o  }' % (graph_name,))
+    else:
+        sparql.setQuery('SELECT * WHERE { ?s ?p ?o  }')
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
 
@@ -124,7 +127,7 @@ def get_unknown_links(graph, precise=False):
 
 def get_unlinked_uris(graph):
     """
-    Get subject nodes that are not used as objects in graph
+    Get subject nodes that are not used as predicates or objects in graph
 
     :param graph:
     :return:
@@ -132,4 +135,5 @@ def get_unlinked_uris(graph):
 
     links = set(o for o in graph.objects() if type(o) != Literal)
 
-    return set(list(s for s in graph.subjects() if s not in links))
+    return list(set(s for s in graph.subjects() if s not in links) &
+                set(p for p in graph.predicates() if p not in links))
