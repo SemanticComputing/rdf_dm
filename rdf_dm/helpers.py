@@ -1,9 +1,13 @@
 """Helper functions for rdf_dm"""
 
+import logging
 from itertools import chain
+from time import sleep
 from urllib.parse import urlparse
 
 from rdflib import Graph, RDF, URIRef, Literal, RDFS
+
+log = logging.getLogger(__name__)
 
 
 def is_uri(uri):
@@ -13,16 +17,15 @@ def is_uri(uri):
     return bool(urlparse(uri).scheme)
 
 
-def read_graph_from_sparql(endpoint, graph_name=None):
+def read_graph_from_sparql(endpoint, graph_name=None, retry=10):
     """
     Read all triples from a SPARQL endpoint to an rdflib Graph.
 
     :param endpoint: A SPARQL endpoing
     :return: A new rdflib graph
-    >>> read_graph_from_sparql("http://dbpedia.org/sparql")
+    >>> len(read_graph_from_sparql("http://dbpedia.org/sparql")) > 0
+    True
     """
-    # TODO: allow to specify graph name also
-
     from SPARQLWrapper import SPARQLWrapper, JSON
 
     sparql = SPARQLWrapper(endpoint)
@@ -31,7 +34,19 @@ def read_graph_from_sparql(endpoint, graph_name=None):
     else:
         sparql.setQuery('SELECT * WHERE { ?s ?p ?o  }')
     sparql.setReturnFormat(JSON)
-    results = sparql.query().convert()
+
+    results = {}
+    while retry:
+        try:
+            results = sparql.query().convert()
+            retry = 0
+        except ValueError:
+            retry -= 1
+            if retry:
+                log.error('SPARQL query result cannot be parsed, waiting 10 seconds before retrying...')
+                sleep(10)
+            else:
+                raise
 
     graph = Graph()
 
@@ -139,3 +154,25 @@ def get_unlinked_uris(graph):
     used_uris = links | preds
 
     return list(set(s for s in graph.subjects() if s not in used_uris))
+
+def get_instance_subgraphs(graph, cl):
+    """
+    Get subgraphs of each instance of a given class.
+
+    :param cl:
+    :param graph:
+    :return:
+    """
+    instances = get_class_instances(graph, cl)
+    subgraphs = []
+
+    for instance in instances:
+        subg = Graph()
+        subg.add(graph[instance::])
+
+        # TODO: Traverse links (until reaches another instance) and add statements
+
+        subgraphs.append(subg)
+
+    return subgraphs
+
