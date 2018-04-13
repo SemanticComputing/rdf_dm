@@ -7,7 +7,7 @@ def read(fname):
 
 setup(
     name="rdf_dm",
-    version="0.1.1",
+    version="0.1.2",
     author="Mikko Koho",
     author_email="mikko.koho@iki.fi",
     description="Tools for data mining RDF datasets",

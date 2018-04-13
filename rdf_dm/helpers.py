@@ -21,10 +21,10 @@ def read_graph_from_sparql(endpoint, graph_name=None, retry=10):
     """
     Read all triples from a SPARQL endpoint to an rdflib Graph.
 
-    :param endpoint: A SPARQL endpoing
+    :param retry: number of retries
+    :param graph_name: Graph URI
+    :param endpoint: SPARQL endpoint
     :return: A new rdflib graph
-    >>> len(read_graph_from_sparql("http://dbpedia.org/sparql")) > 0
-    True
     """
     from SPARQLWrapper import SPARQLWrapper, JSON
 
@@ -43,8 +43,8 @@ def read_graph_from_sparql(endpoint, graph_name=None, retry=10):
         except ValueError:
             retry -= 1
             if retry:
-                log.error('SPARQL query result cannot be parsed, waiting 10 seconds before retrying...')
-                sleep(10)
+                log.error('SPARQL query result cannot be parsed, waiting before retrying...')
+                sleep(2)
             else:
                 raise
 
