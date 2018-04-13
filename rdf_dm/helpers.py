@@ -53,14 +53,18 @@ def read_graph_from_sparql(endpoint, graph_name=None, retry=10):
     for result in results["results"]["bindings"]:
         s = URIRef(result['s']['value'])
         p = URIRef(result['p']['value'])
-        if result['o']['type'] in ['uri', 'bnode']:
-            o = URIRef(result['o']['value'])
-        elif result['o']['type'] in ['literal', 'typed-literal']:
-            o = Literal(result['o']['value'])
-        else:
-            raise Exception('foo')
+        o = result['o']
 
-        graph.add((s, p, o))
+        if o['type'] in ['uri', 'bnode']:
+            rdf_o = URIRef(o['value'])
+        elif o['type'] in ['literal', 'typed-literal']:
+            lang = o.get('xml:lang')
+            datatype = o.get('datatype')
+            rdf_o = Literal(o['value'], lang=lang, datatype=datatype)
+        else:
+            raise ValueError('Unknown RDF node type: {}'.format(o['type']))
+
+        graph.add((s, p, rdf_o))
 
     return graph
 
